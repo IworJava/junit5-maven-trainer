@@ -7,26 +7,17 @@ import com.iwor.exception.ValidationException;
 import com.iwor.mapper.CreateUserMapper;
 import com.iwor.mapper.UserMapper;
 import com.iwor.validator.CreateUserValidator;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import java.util.Optional;
 
-import static lombok.AccessLevel.PRIVATE;
-
-@NoArgsConstructor(access = PRIVATE)
+@RequiredArgsConstructor
 public class UserService {
-
-    private static final UserService INSTANCE = new UserService();
-
-    private final CreateUserValidator createUserValidator = CreateUserValidator.getInstance();
-    private final UserDao userDao = UserDao.getInstance();
-    private final CreateUserMapper createUserMapper = CreateUserMapper.getInstance();
-    private final UserMapper userMapper = UserMapper.getInstance();
-
-    public static UserService getInstance() {
-        return INSTANCE;
-    }
+    private final CreateUserValidator createUserValidator;
+    private final CreateUserMapper createUserMapper;
+    private final UserMapper userMapper;
+    private final UserDao userDao;
 
     public Optional<UserDto> login(String email, String password) {
         return userDao.findByEmailAndPassword(email, password)
@@ -34,12 +25,12 @@ public class UserService {
     }
 
     @SneakyThrows
-    public UserDto create(CreateUserDto userDto) {
-        var validationResult = createUserValidator.validate(userDto);
+    public UserDto create(CreateUserDto createUserDto) {
+        var validationResult = createUserValidator.validate(createUserDto);
         if (validationResult.hasErrors()) {
             throw new ValidationException(validationResult.getErrors());
         }
-        var userEntity = createUserMapper.map(userDto);
+        var userEntity = createUserMapper.map(createUserDto);
         userDao.save(userEntity);
 
         return userMapper.map(userEntity);
